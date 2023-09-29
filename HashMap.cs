@@ -17,7 +17,7 @@ namespace HashMap
             public TValue Value;
             public int Next;
             public int HashCode;
-            public Entry(TKey key, TValue value, int next, int hashCode) 
+            public Entry(TKey key, TValue value, int next, int hashCode)
             {
                 this.Key = key;
                 this.Value = value;
@@ -46,11 +46,12 @@ namespace HashMap
         private int[] bucketPositions;
 
         private Entry[] entries;
-        public HashMap(IEqualityComparer<TKey> Comparer)
+
+        public HashMap(IEqualityComparer<TKey> comparer)
         {
             bucketPositions = Array.Empty<int>();
             entries = Array.Empty<Entry>();
-            this.comparer = Comparer;
+            this.comparer = comparer;
         }
 
         public void Add(TKey key, TValue value)
@@ -58,43 +59,87 @@ namespace HashMap
             Add(new(key, value));
         }
 
-        private Entry[] ReSizeEntries(Entry[] arrayToResize)
+        private Entry[] ReSizeEntries(Entry[] entries)
         {
-            
-        }
+            Entry[] reSizedArray = new Entry[entries.Length * 2];
 
-        private int[] ReSizeBucketPositions(int[] bucketPositions)
+            for (int i = 0; i < entries.Length; i++)
+            {
+                reSizedArray[i] = entries[i];
+            }
+            
+            return reSizedArray;
+        }
+        private int[] ReHash(int[] bucketPositions)
         {
             int[] reSizedArray = new int[bucketPositions.Length * 2];
 
+            //set values of array to -1 to ensure no entry is already pointed to
             for (int i = 0; i < reSizedArray.Length; i++)
             {
-                for (int i = 0; i < length; i++)
-                {
-                    //To Do: loop through entries and re hash them to figure out where they go into the new array
-                    entries[i].HashCode;
-
-                }
+                reSizedArray[i] = -1;
             }
+
+            for (int i = 0; i < entries.Length; i++)
+            {
+                //loop through entries and re hash them to figure out where they go into the new buckets
+
+                int bucketIndex = entries[i].HashCode % reSizedArray.Length;
+
+                if (reSizedArray[bucketIndex] != -1)
+                {
+                    entries[i].Next = reSizedArray[bucketIndex];
+                }
+
+                reSizedArray[bucketIndex] = i; 
+            }
+
+            return reSizedArray;
         }
 
+        bool BucketContains(int bucketIndex)
+        {
+            //loop through bucket to see if key exists. 
+        }
         public void Add(KeyValuePair<TKey, TValue> item)
         {
-            if(bucketPositions.Length == 0)
-            {
-                int[] temp = new int[16];
-                Entry[] resizedEntries = new Entry[16];
+            Entry entry = new Entry(item.Key, item.Value, -1, comparer.GetHashCode(item.Key));
+            
+            // USE BucketContains instead to check if key exists because hashing is expensive
+            //if(Count != 0 && ContainsKey(item.Key)) throw new Exception("Key already exists");
 
-                bucketPositions = temp;
-                entries = resizedEntries;
+            if (bucketPositions.Length == 0)
+            {
+                bucketPositions = new int[16];
+                entries = new Entry[16];
+                for (int i = 0; i < bucketPositions.Length; i++)
+                {
+                    bucketPositions[i] = -1;
+                }
             }
 
-            else if(Count == bucketPositions.Length)
+            else if (Count == bucketPositions.Length)
             {
-                entries = ReSize(entries);
+                bucketPositions = ReHash(bucketPositions);
+                entries = ReSizeEntries(entries);
             }
 
+            int bucketIndex = entry.HashCode % bucketPositions.Length;
+            
+            entries[Count] = entry;
 
+            if (bucketPositions[bucketIndex] == -1)
+            {
+                bucketPositions[bucketIndex] = Count;
+            }
+
+            else
+            {
+                entries[Count].Next = bucketPositions[bucketIndex];
+                bucketPositions[bucketIndex] = Count;
+            }
+            
+            Count++;
         }
 
         public void Clear()
@@ -109,7 +154,19 @@ namespace HashMap
 
         public bool ContainsKey(TKey key)
         {
-            throw new NotImplementedException();
+            int bucketIndex = comparer.GetHashCode(key) % bucketPositions.Length;
+
+            Entry current = entries[bucketPositions[bucketIndex]];
+            if (current.Key.Equals(key)) return true;
+            
+            while(current.Next != -1)
+            {
+                if (entries[current.Next].Key.Equals(key)) return true;
+
+                current = entries[current.Next];
+            }
+
+            return false;
         }
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
