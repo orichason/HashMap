@@ -5,11 +5,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+
 
 namespace HashMap
 {
     //indexer example: https://sharplab.io/#v2:C4LgTgrgdgNAJiA1AHwAICYAMBYAUBgRjzwCUBTOAZWAE8AbMgQTDAEMaACAIwHsuOAvByhkA7hwAUASgDceXlwDaAIgDMygLqCOBTJjn4CATgkKVAVk2ziuPBg7kqtBszY08AbzwcfHAJZQwD5QEAC2BAa+/oHBYeiRvgFBwmGqCT5JsaEALOnRySGh5nnevqiq+RzAABZ+AM6KqLrRcGQAHhqlPl64UVEA5mTAXX09feMcdaJ+wADG1ZJJAHQACqxgdWQSAa1tUlIjExxjRxOzrJs6ID6oAOwp4XmnvueX6Nccdw/xh88cr2QOKoPl9Cmlfs8ARxsiD7oVchDTlDzLCHsU/n1EVEAL5Y3w1MA8cQicQASSguwA8hBgJSAGYkVhQQYAUTaszIAAdgH4eFAJMoVjx+sprL0JrjxeNNsMpaM8T4pjN5otAqt1ptthT2vsFcc9VEoQQPoUCNoAG6sOgQMgyT63J5/KHvLLoC1Wm12u6OyEXQHArIVISW622+0+pF+6EmsLZd2hr0Og0vKMorLmeOe8MTPWSjEEonCMQcclUmn0xnMshsjnc3n8wXCqAAcmAooj2IxI0lkpsQA=
-    internal class HashMap<TKey, TValue> : IDictionary<TKey, TValue>
+    public class HashMap<TKey, TValue> : IDictionary<TKey, TValue>
     {
         struct Entry
         {
@@ -29,9 +31,31 @@ namespace HashMap
         {
             get
             {
-                throw new NotImplementedException();
+                int hashCode = comparer.GetHashCode(key);
+
+                int bucketPosition = bucketPositions[hashCode % bucketPositions.Length];
+
+                for(int i = bucketPosition; i != -1; i = entries[i].Next)
+                {
+                    if (entries[bucketPosition].Key.Equals(key)) return entries[bucketPosition].Value;
+                }
+
+                throw new Exception("Key doesn't exist");
             }
-            set => throw new NotImplementedException();
+            set
+            {
+                int hashCode = comparer.GetHashCode(key);
+
+                int bucketPosition = bucketPositions[hashCode % bucketPositions.Length];
+
+                for(int i = bucketPosition; i != -1; i = entries[i].Next)
+                {
+                    if (entries[bucketPosition].Key.Equals(key))
+                    {
+                        entries[bucketPosition].Value = value;
+                    }
+                }
+            }
         }
 
         public ICollection<TKey> Keys => null;
@@ -97,16 +121,25 @@ namespace HashMap
             return reSizedArray;
         }
 
-        bool BucketContains(int bucketIndex)
+        bool BucketContains(TKey key, int bucketPosition)
         {
             //loop through bucket to see if key exists. 
+
+            for (int i = bucketPosition; i != -1; i = entries[i].Next)
+            {
+                if (entries[i].Key.Equals(key)) return true;
+            }
+
+            return false;
         }
         public void Add(KeyValuePair<TKey, TValue> item)
         {
-            Entry entry = new Entry(item.Key, item.Value, -1, comparer.GetHashCode(item.Key));
-            
-            // USE BucketContains instead to check if key exists because hashing is expensive
-            //if(Count != 0 && ContainsKey(item.Key)) throw new Exception("Key already exists");
+            int hashCode = comparer.GetHashCode(item.Key);
+
+            Entry entry = new Entry(item.Key, item.Value, -1, hashCode);
+
+            //checking if key already exists
+            if (Count != 0 && BucketContains(entry.Key, bucketPositions[hashCode % bucketPositions.Length])) throw new Exception("Key already exists");
 
             if (bucketPositions.Length == 0)
             {
@@ -154,6 +187,8 @@ namespace HashMap
 
         public bool ContainsKey(TKey key)
         {
+            if (Count == 0) return false;
+
             int bucketIndex = comparer.GetHashCode(key) % bucketPositions.Length;
 
             Entry current = entries[bucketPositions[bucketIndex]];
@@ -191,7 +226,23 @@ namespace HashMap
 
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
-            throw new NotImplementedException();
+            int hashCode = comparer.GetHashCode(key);
+
+            int bucketPosition = bucketPositions[hashCode % bucketPositions.Length];
+
+            for (int i = bucketPosition; i != -1; i = entries[i].Next)
+            {
+                if (entries[bucketPosition].Key.Equals(key))
+                {
+                    value = entries[bucketPosition].Value;
+                    return true;
+                }
+            }
+
+            value = default;
+
+            return false;
+
         }
 
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()

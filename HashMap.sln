@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33627.172
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HashMap", "HashMap.csproj", "{A0039A95-E9B2-49D4-A3A2-E667775AE56F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HashMap", "HashMap.csproj", "{A0039A95-E9B2-49D4-A3A2-E667775AE56F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HashMapTest", "..\HashMapTest\HashMapTest.csproj", "{0E9F2852-72E7-44E6-9E64-C6D4843E23E3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{A0039A95-E9B2-49D4-A3A2-E667775AE56F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A0039A95-E9B2-49D4-A3A2-E667775AE56F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A0039A95-E9B2-49D4-A3A2-E667775AE56F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E9F2852-72E7-44E6-9E64-C6D4843E23E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E9F2852-72E7-44E6-9E64-C6D4843E23E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E9F2852-72E7-44E6-9E64-C6D4843E23E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E9F2852-72E7-44E6-9E64-C6D4843E23E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
