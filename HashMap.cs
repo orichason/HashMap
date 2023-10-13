@@ -13,7 +13,7 @@ namespace HashMap
     //indexer example: https://sharplab.io/#v2:C4LgTgrgdgNAJiA1AHwAICYAMBYAUBgRjzwCUBTOAZWAE8AbMgQTDAEMaACAIwHsuOAvByhkA7hwAUASgDceXlwDaAIgDMygLqCOBTJjn4CATgkKVAVk2ziuPBg7kqtBszY08AbzwcfHAJZQwD5QEAC2BAa+/oHBYeiRvgFBwmGqCT5JsaEALOnRySGh5nnevqiq+RzAABZ+AM6KqLrRcGQAHhqlPl64UVEA5mTAXX09feMcdaJ+wADG1ZJJAHQACqxgdWQSAa1tUlIjExxjRxOzrJs6ID6oAOwp4XmnvueX6Nccdw/xh88cr2QOKoPl9Cmlfs8ARxsiD7oVchDTlDzLCHsU/n1EVEAL5Y3w1MA8cQicQASSguwA8hBgJSAGYkVhQQYAUTaszIAAdgH4eFAJMoVjx+sprL0JrjxeNNsMpaM8T4pjN5otAqt1ptthT2vsFcc9VEoQQPoUCNoAG6sOgQMgyT63J5/KHvLLoC1Wm12u6OyEXQHArIVISW622+0+pF+6EmsLZd2hr0Og0vKMorLmeOe8MTPWSjEEonCMQcclUmn0xnMshsjnc3n8wXCqAAcmAooj2IxI0lkpsQA=
     public class HashMap<TKey, TValue> : IDictionary<TKey, TValue>
     {
-        struct Entry
+        public struct Entry
         {
             public TKey Key;
             public TValue Value;
@@ -35,7 +35,7 @@ namespace HashMap
 
                 int bucketPosition = bucketPositions[hashCode % bucketPositions.Length];
 
-                for(int i = bucketPosition; i != -1; i = entries[i].Next)
+                for (int i = bucketPosition; i != -1; i = entries[i].Next)
                 {
                     if (entries[bucketPosition].Key.Equals(key)) return entries[bucketPosition].Value;
                 }
@@ -48,7 +48,7 @@ namespace HashMap
 
                 int bucketPosition = bucketPositions[hashCode % bucketPositions.Length];
 
-                for(int i = bucketPosition; i != -1; i = entries[i].Next)
+                for (int i = bucketPosition; i != -1; i = entries[i].Next)
                 {
                     if (entries[bucketPosition].Key.Equals(key))
                     {
@@ -67,9 +67,9 @@ namespace HashMap
 
         public bool IsReadOnly => false;
 
-        private int[] bucketPositions;
+        public int[] bucketPositions { get; private set; }
 
-        private Entry[] entries;
+        public Entry[] entries { get; private set; }
 
         public HashMap(IEqualityComparer<TKey> comparer)
         {
@@ -91,7 +91,7 @@ namespace HashMap
             {
                 reSizedArray[i] = entries[i];
             }
-            
+
             return reSizedArray;
         }
         private int[] ReHash(int[] bucketPositions)
@@ -115,7 +115,7 @@ namespace HashMap
                     entries[i].Next = reSizedArray[bucketIndex];
                 }
 
-                reSizedArray[bucketIndex] = i; 
+                reSizedArray[bucketIndex] = i;
             }
 
             return reSizedArray;
@@ -158,7 +158,7 @@ namespace HashMap
             }
 
             int bucketIndex = entry.HashCode % bucketPositions.Length;
-            
+
             entries[Count] = entry;
 
             if (bucketPositions[bucketIndex] == -1)
@@ -171,7 +171,7 @@ namespace HashMap
                 entries[Count].Next = bucketPositions[bucketIndex];
                 bucketPositions[bucketIndex] = Count;
             }
-            
+
             Count++;
         }
 
@@ -193,8 +193,8 @@ namespace HashMap
 
             Entry current = entries[bucketPositions[bucketIndex]];
             if (current.Key.Equals(key)) return true;
-            
-            while(current.Next != -1)
+
+            while (current.Next != -1)
             {
                 if (entries[current.Next].Key.Equals(key)) return true;
 
