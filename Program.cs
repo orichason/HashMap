@@ -13,7 +13,6 @@
                  new (20, "Pope")
             };
 
-
             string temp = dictionary[20];
 
             dictionary[20] = "Hi";
