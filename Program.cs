@@ -1,25 +1,27 @@
-﻿namespace HashMap
+﻿using System.ComponentModel.Design;
+
+namespace HashMap
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            HashMap<int, string> dictionary = new(EqualityComparer<int>.Default)
+            HashMap<int, string> dictionary = new(EqualityComparer<int>.Default);
+            try
             {
-                 new (5, "Sam"),
-                 //new(5, "Joe"),
-                 new (8, "Bob"),
-                 new (7, "Edden"),
-                 new (20, "Pope")
-            };
-
-            string temp = dictionary[20];
-
-            dictionary[20] = "Hi";
-
-
-            dictionary.TryGetValue(7, out var yo);
-
+                dictionary.Add(6, "Sam");
+                dictionary.Add(5, "Joe");
+                dictionary.Add(7, "Bob");
+                dictionary.Add(64, "Nikita");
+                dictionary.Add(32, "Ori");
+                dictionary.Remove(0);
+                dictionary.Add(5, "billy");
+            }
+            catch (Exception e)
+            {
+                //Console.WriteLine("Key already exists");
+            }
         }
+
     }
 }

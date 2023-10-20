@@ -65,6 +65,7 @@ namespace HashMap
         private IEqualityComparer<TKey> comparer;
         public int Count { get; private set; }
 
+        private int entryIndex;
         public bool IsReadOnly => false;
 
         public int[] bucketPositions { get; private set; }
@@ -121,11 +122,11 @@ namespace HashMap
             return reSizedArray;
         }
 
-        bool BucketContains(TKey key, int bucketPosition)
+        public bool BucketContains(TKey key, int bucketIndex)
         {
             //loop through bucket to see if key exists. 
 
-            for (int i = bucketPosition; i != -1; i = entries[i].Next)
+            for (int i = bucketPositions[bucketIndex]; i != -1; i = entries[i].Next)
             {
                 if (entries[i].Key.Equals(key)) return true;
             }
@@ -134,13 +135,6 @@ namespace HashMap
         }
         public void Add(KeyValuePair<TKey, TValue> item)
         {
-            int hashCode = comparer.GetHashCode(item.Key);
-
-            Entry entry = new Entry(item.Key, item.Value, -1, hashCode);
-
-            //checking if key already exists
-            if (Count != 0 && BucketContains(entry.Key, bucketPositions[hashCode % bucketPositions.Length])) throw new Exception("Key already exists");
-
             if (bucketPositions.Length == 0)
             {
                 bucketPositions = new int[16];
@@ -151,27 +145,35 @@ namespace HashMap
                 }
             }
 
+            int hashCode = comparer.GetHashCode(item.Key);
+
+            int bucketIndex = hashCode % bucketPositions.Length;
+
+            Entry entry = new Entry(item.Key, item.Value, -1, hashCode);
+
+            //checking if key already exists
+            if (Count != 0 && BucketContains(entry.Key, bucketIndex)) throw new Exception("Key already exists");
+
+
             else if (Count == bucketPositions.Length)
             {
                 bucketPositions = ReHash(bucketPositions);
                 entries = ReSizeEntries(entries);
             }
 
-            int bucketIndex = entry.HashCode % bucketPositions.Length;
-
-            entries[Count] = entry;
+            entries[entryIndex] = entry;
 
             if (bucketPositions[bucketIndex] == -1)
             {
-                bucketPositions[bucketIndex] = Count;
+                bucketPositions[bucketIndex] = entryIndex;
             }
 
             else
             {
-                entries[Count].Next = bucketPositions[bucketIndex];
-                bucketPositions[bucketIndex] = Count;
+                entries[entryIndex].Next = bucketPositions[bucketIndex];
+                bucketPositions[bucketIndex] = entryIndex;
             }
-
+            entryIndex++;
             Count++;
         }
 
@@ -216,12 +218,38 @@ namespace HashMap
 
         public bool Remove(TKey key)
         {
-            throw new NotImplementedException();
+            int hashCode = comparer.GetHashCode(key);
+
+            int bucketIndex = hashCode % bucketPositions.Length;
+
+            if (Count == 0 || !BucketContains(key, bucketIndex)) throw new Exception("Key not in map");
+
+            Count--;
+
+            //TO DO: AFTER EVERY REMOVE, MOVE ALL ENTRIES AFTER IT LEFT BY ONE AND RESIZE WHEN  NEEDED
+            for (int i = bucketPositions[bucketIndex]; i != -1; i = entries[i].Next)
+            {
+                //check if it is the only entry in the bucket
+                
+                if (entries[i].Key.Equals(key))
+                {
+                    bucketPositions[bucketIndex] = entries[i].Next;
+                    return true;
+                }
+                Entry nextEntry = entries[entries[i].Next];
+                if (nextEntry.Key.Equals(key))
+                {
+                    entries[i].Next = nextEntry.Next;        
+                }
+            }
+            return false;
         }
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
         {
-            throw new NotImplementedException();
+            Remove(item.Key);
+
+            return false;
         }
 
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
