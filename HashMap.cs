@@ -33,11 +33,11 @@ namespace HashMap
             {
                 int hashCode = comparer.GetHashCode(key);
 
-                int bucketPosition = bucketPositions[hashCode % bucketPositions.Length];
+                int bucketIndex = hashCode % bucketPositions.Length;
 
-                for (int i = bucketPosition; i != -1; i = entries[i].Next)
+                for (int i = bucketPositions[bucketIndex]; i != -1; i = entries[i].Next)
                 {
-                    if (entries[bucketPosition].Key.Equals(key)) return entries[bucketPosition].Value;
+                    if (entries[i].Key.Equals(key)) return entries[i].Value;
                 }
 
                 throw new Exception("Key doesn't exist");
@@ -46,13 +46,13 @@ namespace HashMap
             {
                 int hashCode = comparer.GetHashCode(key);
 
-                int bucketPosition = bucketPositions[hashCode % bucketPositions.Length];
+                int bucketIndex = hashCode % bucketPositions.Length;
 
-                for (int i = bucketPosition; i != -1; i = entries[i].Next)
+                for (int i = bucketPositions[bucketIndex]; i != -1; i = entries[i].Next)
                 {
-                    if (entries[bucketPosition].Key.Equals(key))
+                    if (entries[i].Key.Equals(key))
                     {
-                        entries[bucketPosition].Value = value;
+                        entries[i].Value = value;
                     }
                 }
             }
@@ -84,7 +84,7 @@ namespace HashMap
             Add(new(key, value));
         }
 
-        private Entry[] ReSizeEntries(Entry[] entries)
+        private void ReSizeEntries()
         {
             Entry[] reSizedArray = new Entry[entries.Length * 2];
 
@@ -93,10 +93,11 @@ namespace HashMap
                 reSizedArray[i] = entries[i];
             }
 
-            return reSizedArray;
+            entries = reSizedArray;
         }
         private int[] ReHash(int[] bucketPositions)
         {
+            //CHANGE TO VOID !!!!
             int[] reSizedArray = new int[bucketPositions.Length * 2];
 
             //set values of array to -1 to ensure no entry is already pointed to
@@ -152,13 +153,13 @@ namespace HashMap
             Entry entry = new Entry(item.Key, item.Value, -1, hashCode);
 
             //checking if key already exists
-            if (Count != 0 && BucketContains(entry.Key, bucketIndex)) throw new Exception("Key already exists");
+            if (Count != 0 && BucketContains(entry.Key, bucketIndex)) throw new ArgumentException("Key already exists");
 
 
             else if (Count == bucketPositions.Length)
             {
                 bucketPositions = ReHash(bucketPositions);
-                entries = ReSizeEntries(entries);
+                ReSizeEntries();
             }
 
             entries[entryIndex] = entry;
@@ -227,24 +228,63 @@ namespace HashMap
             Count--;
 
             //TO DO: AFTER EVERY REMOVE, MOVE ALL ENTRIES AFTER IT LEFT BY ONE AND RESIZE WHEN  NEEDED
+
             for (int i = bucketPositions[bucketIndex]; i != -1; i = entries[i].Next)
             {
                 //check if it is the only entry in the bucket
                 
                 if (entries[i].Key.Equals(key))
                 {
+                    ShiftEntriesLeft(bucketIndex);
+
                     bucketPositions[bucketIndex] = entries[i].Next;
+                    
                     return true;
                 }
                 Entry nextEntry = entries[entries[i].Next];
+
                 if (nextEntry.Key.Equals(key))
                 {
-                    entries[i].Next = nextEntry.Next;        
+                    entries[i].Next = nextEntry.Next;
+
+                    ShiftEntriesLeft(bucketIndex);
                 }
             }
             return false;
         }
 
+        private void ShiftEntriesLeft(int startingIndex)
+        {
+            for (int i = bucketPositions[startingIndex]; i <= Count; i++)
+            {
+                entries[i] = entries[i + 1];
+            }
+ 
+            if(Count < entries.Length / 4)
+            {
+                CompressArrays();
+            }
+        }
+
+        private void CompressArrays()
+        {
+            Entry[] reSizedEntries = new Entry[entries.Length / 2];
+            int[] reSizedBucketPositions = new int[bucketPositions.Length / 2];
+
+            for (int i = 0; i < reSizedEntries.Length; i++)
+            {
+                reSizedEntries[i] = entries[i];
+            }
+
+            entries = reSizedEntries;
+
+            for (int i = 0; i < reSizedBucketPositions.Length; i++)
+            {
+                reSizedBucketPositions[i] = bucketPositions[i];
+            }
+
+            bucketPositions = reSizedBucketPositions;
+        }
         public bool Remove(KeyValuePair<TKey, TValue> item)
         {
             Remove(item.Key);

@@ -14,13 +14,14 @@ namespace HashMap
                 dictionary.Add(7, "Bob");
                 dictionary.Add(64, "Nikita");
                 dictionary.Add(32, "Ori");
-                dictionary.Remove(0);
-                dictionary.Add(5, "billy");
+                dictionary.Remove(6);
+                //dictionary.Add(5, "billy");
             }
             catch (Exception e)
             {
                 //Console.WriteLine("Key already exists");
             }
+            ;
         }
 
     }
